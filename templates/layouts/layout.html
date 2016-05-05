@@ -1,0 +1,52 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{template "title"}}</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/cribbnotes.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="/static/js/bootstrap.min.js"></script>
+    <div class="container">
+      <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="/">CribbNotes</a>
+          <form class="navbar-form navbar-left" role="search" action="/search" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ .CsrfToken }}">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <a class="btn btn-primary" href="/">
+                  <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                </a>
+              </span>
+              <input type="text" class="form-control" id="searchTags" name="searchString" value="{{.SearchString}}" 
+               placeholder="Enter string to search...">
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary">Search</button>
+              </span>
+            </div>
+          </form>
+          <p class="navbar-text navbar-right">
+            <a class="btn btn-default" href="/new">New Note</a>
+          </p>
+        </div>
+      </nav>
+      {{template "body" .}}
+      <nav class="navbar navbar-default navbar-fixed-bottom">
+        <div class="container">
+          <p class="navbar-text navbar-right">
+            CribbNotes was developed by Jamey Cribbs 
+          </p>
+        </div>
+      </nav>
+    </div>
+  </body>
+</html>
+{{end}}

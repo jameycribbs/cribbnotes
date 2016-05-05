@@ -1,0 +1,19 @@
+{{define "title"}}CribbNotes{{end}}
+
+{{define "body"}}
+  <h1>Editing Note</h1>
+  <form action="/update" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ .CsrfToken }}">
+    <input type="hidden" name="fileId" id="fileId" value="{{.Rec.FileId}}">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input autofocus type="text" class="form-control" name="title" value="{{.Rec.Title}}"> 
+    </div>
+    <div class="form-group">
+      <label for="text">Text</label>
+      <textarea class="form-control" name="text" rows="10" cols="80">{{.Rec.Text}}</textarea>
+    </div>
+    <button type="submit" class="btn btn-default">Save</button>
+    <a class="btn btn-default" href="/">Back</a>
+  </form>
+{{end}}

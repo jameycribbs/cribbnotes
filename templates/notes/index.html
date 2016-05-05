@@ -1,0 +1,44 @@
+{{define "title"}}CribbNotes{{end}}
+
+{{define "body"}}
+  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    {{range $i, $n := .Notes}}
+      <div class="panel panel-info">
+        <div class="panel-heading" role="tab" id="heading{{$n.FileId}}">
+          <h4 class="panel-title">
+            <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse{{$n.FileId}}" 
+              aria-expanded="true" aria-controls="collapse{{$n.FileId}}">
+              {{$n.Title}}
+            </a>
+          </h4>
+        </div>
+        <div id="collapse{{$n.FileId}}" class="panel-collapse collapse" role="tabpanel" 
+          aria-labelledby="heading{{$n.FileId}}">
+          <div class="panel-body">
+            {{$n.Text}}
+            <br />
+            <a class="btn btn-default" href="/{{$n.FileId}}/edit" title="Edit Note">
+              <span class="glyphicon glyphicon-edit" aria-hidden="true"> Edit</span>
+            </a>
+            <a class="btn btn-default" href="/{{$n.FileId}}/delete" title="Delete Note">
+              <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"> Delete</span>
+            </a>
+          </div>
+          <div class="panel-footer">
+            <strong>Created At:</strong> 
+            {{$n.FormattedCreatedAt}}
+            <strong>Last Updated At:</strong>
+            {{$n.FormattedUpdatedAt}}
+          </div>
+        </div>
+      </div>
+    {{else}}
+      {{if .SearchString}} 
+        <div class="alert alert-danger" role="alert">
+          <h4>No notes were found for the search you entered.</h4>
+        </div>
+      {{end}}
+    {{end}}
+  </div>
+{{end}}
+
