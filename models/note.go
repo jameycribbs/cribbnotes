@@ -29,7 +29,7 @@ func (slice Notes) Len() int {
 }
 
 func (slice Notes) Less(i, j int) bool {
-	return slice[i].Title < slice[j].Title
+	return strings.ToLower(slice[i].Title) < strings.ToLower(slice[j].Title)
 }
 
 func (slice Notes) Swap(i, j int) {
@@ -96,8 +96,10 @@ func FindNote(fileId string) (*Note, error) {
 func FindNotes(searchString string) ([]Note, error) {
 	var results Notes
 	var rec Note
+	var valuesFound int
 
-	searchValue := strings.ToLower(searchString)
+	searchValues := strings.Split(strings.ToLower(searchString), " ")
+	searchValuesCount := len(searchValues)
 
 	for _, fileId := range fileIdsInDataDir() {
 		filename := filePath(fileId)
@@ -114,8 +116,19 @@ func FindNotes(searchString string) ([]Note, error) {
 
 		rec.FileId = fileId
 
-		if searchValue == "" || strings.Contains(strings.ToLower(rec.Title), searchValue) || strings.Contains(strings.ToLower(rec.Text),
-			searchValue) {
+		valuesFound = 0
+
+		for _, searchValue := range searchValues {
+			if searchValue == "" || strings.Contains(strings.ToLower(rec.Title), searchValue) || strings.Contains(strings.ToLower(rec.Text),
+				searchValue) {
+
+				valuesFound++
+			} else {
+				break
+			}
+		}
+
+		if valuesFound == searchValuesCount {
 			results = append(results, rec)
 		}
 	}
