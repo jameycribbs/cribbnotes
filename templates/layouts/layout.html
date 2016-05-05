@@ -26,7 +26,7 @@
                   <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </a>
               </span>
-              <input type="text" class="form-control" id="searchTags" name="searchString" value="{{.SearchString}}" 
+              <input autofocus type="text" class="form-control" id="searchTags" name="searchString" value="{{.SearchString}}" 
                placeholder="Enter string to search...">
               <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Search</button>
@@ -34,15 +34,22 @@
             </div>
           </form>
           <p class="navbar-text navbar-right">
-            <a class="btn btn-default" href="/new">New Note</a>
+            <a class="btn btn-default" href="/new">
+              <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New Note
+            </a>
           </p>
         </div>
       </nav>
       {{template "body" .}}
       <nav class="navbar navbar-default navbar-fixed-bottom">
         <div class="container">
+          <p class="navbar-text navbar-left">
+            You have
+            {{.TotalRecs}}
+            notes!
+          </p>
           <p class="navbar-text navbar-right">
-            CribbNotes was developed by Jamey Cribbs 
+          <a href="https://github.com/jameycribbs/cribbnotes">CribbNotes was developed by Jamey Cribbs </a>
           </p>
         </div>
       </nav>

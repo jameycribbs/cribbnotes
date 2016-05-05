@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"os"
 	"path"
@@ -21,12 +22,30 @@ type Note struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type Notes []Note
+
+func (slice Notes) Len() int {
+	return len(slice)
+}
+
+func (slice Notes) Less(i, j int) bool {
+	return slice[i].Title < slice[j].Title
+}
+
+func (slice Notes) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
 func (note *Note) FormattedCreatedAt() string {
 	return note.CreatedAt.Format(time.RFC822)
 }
 
 func (note *Note) FormattedUpdatedAt() string {
 	return note.UpdatedAt.Format(time.RFC822)
+}
+
+func (note *Note) FormattedText() template.HTML {
+	return template.HTML(strings.Replace(note.Text, "\n", "</br>", -1))
 }
 
 func CreateNote(rec *Note) (string, error) {
@@ -75,7 +94,7 @@ func FindNote(fileId string) (*Note, error) {
 }
 
 func FindNotes(searchString string) ([]Note, error) {
-	var results []Note
+	var results Notes
 	var rec Note
 
 	searchValue := strings.ToLower(searchString)
@@ -101,7 +120,12 @@ func FindNotes(searchString string) ([]Note, error) {
 		}
 	}
 
+	sort.Sort(results)
 	return results, nil
+}
+
+func NotesCount() int {
+	return len(fileIdsInDataDir())
 }
 
 func UpdateNote(rec *Note, fileId string) error {
