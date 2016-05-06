@@ -14,6 +14,7 @@ type IndexTemplateData struct {
 	Notes        []models.Note
 	CsrfToken    string
 	TotalRecs    int
+	StatusMsg    string
 }
 
 type TemplateData struct {
@@ -21,20 +22,30 @@ type TemplateData struct {
 	Rec          *models.Note
 	CsrfToken    string
 	TotalRecs    int
+	StatusMsg    string
 }
 
 func Create(w http.ResponseWriter, r *http.Request, throwaway string, dataDir string) {
 	title := r.FormValue("title")
 	text := r.FormValue("text")
 
-	rec := models.Note{Title: title, Text: text, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	if title == "" || text == "" {
+		msg := "Missing note title or text!"
+		rec := models.Note{Title: title, Text: text}
 
-	_, err := models.CreateNote(dataDir, &rec)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir), StatusMsg: msg}
+
+		renderTemplate(w, "new", &templateData)
+	} else {
+		rec := models.Note{Title: title, Text: text, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+
+		_, err := models.CreateNote(dataDir, &rec)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
-
-	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func Delete(w http.ResponseWriter, r *http.Request, fileId string, dataDir string) {
@@ -113,36 +124,45 @@ func Index(w http.ResponseWriter, r *http.Request, throwAway string, dataDir str
 }
 
 func New(w http.ResponseWriter, r *http.Request, throwaway string, dataDir string) {
-	templateData := TemplateData{CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir)}
+	rec := models.Note{}
+
+	templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir)}
 
 	renderTemplate(w, "new", &templateData)
 }
 
 func Update(w http.ResponseWriter, r *http.Request, throwaway string, dataDir string) {
-	var rec *models.Note
-
 	fileId := r.FormValue("fileId")
 	title := r.FormValue("title")
 	text := r.FormValue("text")
 
-	rec, err := models.FindNote(dataDir, fileId)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if title == "" || text == "" {
+		msg := "Missing note title or text!"
+		rec := models.Note{FileId: fileId, Title: title, Text: text}
+
+		templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir), StatusMsg: msg}
+
+		renderTemplate(w, "edit", &templateData)
+	} else {
+		rec, err := models.FindNote(dataDir, fileId)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		rec.FileId = fileId
+		rec.Title = title
+		rec.Text = text
+		rec.UpdatedAt = time.Now()
+
+		err = models.UpdateNote(dataDir, rec, fileId)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
-
-	rec.FileId = fileId
-	rec.Title = title
-	rec.Text = text
-	rec.UpdatedAt = time.Now()
-
-	err = models.UpdateNote(dataDir, rec, fileId)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 //=============================================================================

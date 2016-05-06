@@ -40,6 +40,9 @@
           </p>
         </div>
       </nav>
+      {{if .StatusMsg}} 
+        <div class="alert alert-danger" role="alert">{{.StatusMsg}}</div>
+      {{end}}
       {{template "body" .}}
       <nav class="navbar navbar-default navbar-fixed-bottom">
         <div class="container">
