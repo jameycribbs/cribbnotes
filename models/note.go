@@ -48,13 +48,13 @@ func (note *Note) FormattedText() template.HTML {
 	return template.HTML(strings.Replace(note.Text, "\n", "</br>", -1))
 }
 
-func CreateNote(rec *Note) (string, error) {
-	fileId, err := nextAvailableFileId()
+func CreateNote(dataDir string, rec *Note) (string, error) {
+	fileId, err := nextAvailableFileId(dataDir)
 	if err != nil {
 		return "", err
 	}
 
-	err = writeRec(rec, fileId)
+	err = writeRec(dataDir, rec, fileId)
 	if err != nil {
 		return "", err
 	}
@@ -62,8 +62,8 @@ func CreateNote(rec *Note) (string, error) {
 	return fileId, nil
 }
 
-func DeleteNote(fileId string) error {
-	filename := filePath(fileId)
+func DeleteNote(dataDir string, fileId string) error {
+	filename := filePath(dataDir, fileId)
 
 	err := os.Remove(filename)
 	if err != nil {
@@ -73,10 +73,10 @@ func DeleteNote(fileId string) error {
 	return nil
 }
 
-func FindNote(fileId string) (*Note, error) {
+func FindNote(dataDir string, fileId string) (*Note, error) {
 	var rec *Note
 
-	filename := filePath(fileId)
+	filename := filePath(dataDir, fileId)
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -93,7 +93,7 @@ func FindNote(fileId string) (*Note, error) {
 	return rec, nil
 }
 
-func FindNotes(searchString string) ([]Note, error) {
+func FindNotes(dataDir string, searchString string) ([]Note, error) {
 	var results Notes
 	var rec Note
 	var valuesFound int
@@ -101,8 +101,8 @@ func FindNotes(searchString string) ([]Note, error) {
 	searchValues := strings.Split(strings.ToLower(searchString), " ")
 	searchValuesCount := len(searchValues)
 
-	for _, fileId := range fileIdsInDataDir() {
-		filename := filePath(fileId)
+	for _, fileId := range fileIdsInDataDir(dataDir) {
+		filename := filePath(dataDir, fileId)
 
 		data, err := ioutil.ReadFile(filename)
 		if err != nil {
@@ -137,13 +137,13 @@ func FindNotes(searchString string) ([]Note, error) {
 	return results, nil
 }
 
-func NotesCount() int {
-	return len(fileIdsInDataDir())
+func NotesCount(dataDir string) int {
+	return len(fileIdsInDataDir(dataDir))
 }
 
-func UpdateNote(rec *Note, fileId string) error {
-	if stringInSlice(fileId, fileIdsInDataDir()) {
-		err := writeRec(rec, fileId)
+func UpdateNote(dataDir string, rec *Note, fileId string) error {
+	if stringInSlice(fileId, fileIdsInDataDir(dataDir)) {
+		err := writeRec(dataDir, rec, fileId)
 		if err != nil {
 			return err
 		}
@@ -158,10 +158,10 @@ func UpdateNote(rec *Note, fileId string) error {
 //*****************************************************************************
 
 // fileIdsInDataDir returns all file ids in the data directory.
-func fileIdsInDataDir() []string {
+func fileIdsInDataDir(dataDir string) []string {
 	var ids []string
 
-	files, _ := ioutil.ReadDir("data")
+	files, _ := ioutil.ReadDir(dataDir)
 	for _, file := range files {
 		if !file.IsDir() {
 			if path.Ext(file.Name()) == ".json" {
@@ -174,13 +174,13 @@ func fileIdsInDataDir() []string {
 }
 
 // filePath returns a file name for a file id.
-func filePath(fileId string) string {
-	return fmt.Sprintf("data/%v.json", fileId)
+func filePath(dataDir string, fileId string) string {
+	return fmt.Sprintf("%v/%v.json", dataDir, fileId)
 }
 
 // loadRec reads a json file into the supplied Note struct.
-func loadRec(rec Note, fileId string) error {
-	filename := filePath(fileId)
+func loadRec(dataDir string, rec Note, fileId string) error {
+	filename := filePath(dataDir, fileId)
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -194,11 +194,11 @@ func loadRec(rec Note, fileId string) error {
 
 // nextAvailableFileId returns the next ascending available file id in a
 // directory.
-func nextAvailableFileId() (string, error) {
+func nextAvailableFileId(dataDir string) (string, error) {
 	var fileIds []int
 	var nextFileId string
 
-	for _, f := range fileIdsInDataDir() {
+	for _, f := range fileIdsInDataDir(dataDir) {
 		fileId, err := strconv.Atoi(f)
 		if err != nil {
 			return "", err
@@ -228,14 +228,14 @@ func stringInSlice(s string, list []string) bool {
 	return false
 }
 
-func writeRec(rec *Note, fileId string) error {
+func writeRec(dataDir string, rec *Note, fileId string) error {
 	marshalledRec, err := json.Marshal(rec)
 
 	if err != nil {
 		return err
 	}
 
-	filename := filePath(fileId)
+	filename := filePath(dataDir, fileId)
 
 	err = ioutil.WriteFile(filename, marshalledRec, 0600)
 	if err != nil {

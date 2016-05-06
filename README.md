@@ -16,9 +16,10 @@ go get github.com/jameycribbs/cribbnotes
 
 - go get any dependencies
 - go build cribbnotes.go
-- in the directory where you are going to run the cribbnotes executable, create a "data" directory
+- create a directory where you want to store your notes
+- copy config.json.example to config.json in the directory where you are going to run the cribbnotes executable and edit it to reflect the data directory where your notes will be stored and the port you want to run the web server on
 - run the cribbnotes executable that you just built
-- point your browser to http://localhost:8080
+- point your browser to http://localhost:(with port number you set in config file)
 
 
 ### Contributions welcome!
