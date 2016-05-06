@@ -2,7 +2,7 @@ Keywords: Golang, go, web, notes
 
 ### CribbNotes - A local web application that allows you to take and search for notes
 
-CribbNotes is a simplistic note taking application written in Go.  It is meant to be run locally on your machine and accessed through your browser.
+CribbNotes is a simple note taking application written in Go.  It is meant to be run locally on your machine and accessed through your browser.
 
 <p align="center">
   <img src="cribbnotes_screenshot.png" width="890" height="668" alt="CribbNotes Example App" />
