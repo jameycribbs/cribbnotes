@@ -26,8 +26,8 @@
                   <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
                 </a>
               </span>
-              <input autofocus type="text" class="form-control" id="searchTags" name="searchString" value="{{.SearchString}}" 
-               placeholder="Enter words to search for...">
+              <input {{if .FocusSearchString}} autofocus {{end}} type="text" class="form-control" id="searchTags" name="searchString" 
+               value="{{.SearchString}}" placeholder="Enter words to search for...">
               <span class="input-group-btn">
                 <button type="submit" class="btn btn-primary">Search</button>
               </span>

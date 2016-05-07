@@ -1,4 +1,4 @@
-package models
+package note_model
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-type Note struct {
+type Record struct {
 	FileId    string    `json:"-"y`
 	Title     string    `json:"title"`
 	Text      string    `json:"text"`
@@ -22,33 +22,33 @@ type Note struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type Notes []Note
+type Records []Record
 
-func (slice Notes) Len() int {
+func (slice Records) Len() int {
 	return len(slice)
 }
 
-func (slice Notes) Less(i, j int) bool {
+func (slice Records) Less(i, j int) bool {
 	return strings.ToLower(slice[i].Title) < strings.ToLower(slice[j].Title)
 }
 
-func (slice Notes) Swap(i, j int) {
+func (slice Records) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
-func (note *Note) FormattedCreatedAt() string {
-	return note.CreatedAt.Format(time.RFC822)
+func (rec *Record) FormattedCreatedAt() string {
+	return rec.CreatedAt.Format(time.RFC822)
 }
 
-func (note *Note) FormattedUpdatedAt() string {
-	return note.UpdatedAt.Format(time.RFC822)
+func (rec *Record) FormattedUpdatedAt() string {
+	return rec.UpdatedAt.Format(time.RFC822)
 }
 
-func (note *Note) FormattedText() template.HTML {
-	return template.HTML(strings.Replace(note.Text, "\n", "</br>", -1))
+func (rec *Record) FormattedText() template.HTML {
+	return template.HTML(strings.Replace(rec.Text, "\n", "</br>", -1))
 }
 
-func CreateNote(dataDir string, rec *Note) (string, error) {
+func Create(dataDir string, rec *Record) (string, error) {
 	fileId, err := nextAvailableFileId(dataDir)
 	if err != nil {
 		return "", err
@@ -62,7 +62,11 @@ func CreateNote(dataDir string, rec *Note) (string, error) {
 	return fileId, nil
 }
 
-func DeleteNote(dataDir string, fileId string) error {
+func Count(dataDir string) int {
+	return len(fileIdsInDataDir(dataDir))
+}
+
+func Delete(dataDir string, fileId string) error {
 	filename := filePath(dataDir, fileId)
 
 	err := os.Remove(filename)
@@ -73,8 +77,8 @@ func DeleteNote(dataDir string, fileId string) error {
 	return nil
 }
 
-func FindNote(dataDir string, fileId string) (*Note, error) {
-	var rec *Note
+func Find(dataDir string, fileId string) (*Record, error) {
+	var rec *Record
 
 	filename := filePath(dataDir, fileId)
 
@@ -93,9 +97,9 @@ func FindNote(dataDir string, fileId string) (*Note, error) {
 	return rec, nil
 }
 
-func FindNotes(dataDir string, searchString string) ([]Note, error) {
-	var results Notes
-	var rec Note
+func Search(dataDir string, searchString string) ([]Record, error) {
+	var results Records
+	var rec Record
 	var valuesFound int
 
 	searchValues := strings.Split(strings.ToLower(searchString), " ")
@@ -137,11 +141,7 @@ func FindNotes(dataDir string, searchString string) ([]Note, error) {
 	return results, nil
 }
 
-func NotesCount(dataDir string) int {
-	return len(fileIdsInDataDir(dataDir))
-}
-
-func UpdateNote(dataDir string, rec *Note, fileId string) error {
+func Update(dataDir string, rec *Record, fileId string) error {
 	if stringInSlice(fileId, fileIdsInDataDir(dataDir)) {
 		err := writeRec(dataDir, rec, fileId)
 		if err != nil {
@@ -179,7 +179,7 @@ func filePath(dataDir string, fileId string) string {
 }
 
 // loadRec reads a json file into the supplied Note struct.
-func loadRec(dataDir string, rec Note, fileId string) error {
+func loadRec(dataDir string, rec Record, fileId string) error {
 	filename := filePath(dataDir, fileId)
 
 	data, err := ioutil.ReadFile(filename)
@@ -228,7 +228,7 @@ func stringInSlice(s string, list []string) bool {
 	return false
 }
 
-func writeRec(dataDir string, rec *Note, fileId string) error {
+func writeRec(dataDir string, rec *Record, fileId string) error {
 	marshalledRec, err := json.Marshal(rec)
 
 	if err != nil {

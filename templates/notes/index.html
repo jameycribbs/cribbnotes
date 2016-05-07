@@ -2,7 +2,7 @@
 
 {{define "body"}}
   <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-    {{range $i, $n := .Notes}}
+    {{range $i, $n := .Recs}}
       <div class="panel panel-default">
         <div class="panel-heading" role="tab" id="heading{{$n.FileId}}">
           <h4 class="panel-title">

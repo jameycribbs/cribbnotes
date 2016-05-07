@@ -1,7 +1,7 @@
 package notes_handler
 
 import (
-	"github.com/jameycribbs/cribbnotes/models"
+	"github.com/jameycribbs/cribbnotes/models/note_model"
 	"github.com/justinas/nosurf"
 	"html/template"
 	"net/http"
@@ -10,19 +10,21 @@ import (
 )
 
 type IndexTemplateData struct {
-	SearchString string
-	Notes        []models.Note
-	CsrfToken    string
-	TotalRecs    int
-	StatusMsg    string
+	SearchString      string
+	FocusSearchString bool
+	Recs              []note_model.Record
+	CsrfToken         string
+	TotalRecs         int
+	StatusMsg         string
 }
 
 type TemplateData struct {
-	SearchString string
-	Rec          *models.Note
-	CsrfToken    string
-	TotalRecs    int
-	StatusMsg    string
+	SearchString      string
+	FocusSearchString bool
+	Rec               *note_model.Record
+	CsrfToken         string
+	TotalRecs         int
+	StatusMsg         string
 }
 
 func Create(w http.ResponseWriter, r *http.Request, throwaway string, dataDir string) {
@@ -31,15 +33,15 @@ func Create(w http.ResponseWriter, r *http.Request, throwaway string, dataDir st
 
 	if title == "" || text == "" {
 		msg := "Missing note title or text!"
-		rec := models.Note{Title: title, Text: text}
+		rec := note_model.Record{Title: title, Text: text}
 
-		templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir), StatusMsg: msg}
+		templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir), StatusMsg: msg}
 
 		renderTemplate(w, "new", &templateData)
 	} else {
-		rec := models.Note{Title: title, Text: text, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+		rec := note_model.Record{Title: title, Text: text, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 
-		_, err := models.CreateNote(dataDir, &rec)
+		_, err := note_model.Create(dataDir, &rec)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -49,15 +51,15 @@ func Create(w http.ResponseWriter, r *http.Request, throwaway string, dataDir st
 }
 
 func Delete(w http.ResponseWriter, r *http.Request, fileId string, dataDir string) {
-	var rec *models.Note
+	var rec *note_model.Record
 
-	rec, err := models.FindNote(dataDir, fileId)
+	rec, err := note_model.Find(dataDir, fileId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	templateData := TemplateData{Rec: rec, CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir)}
+	templateData := TemplateData{Rec: rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir)}
 
 	renderTemplate(w, "delete", &templateData)
 }
@@ -65,7 +67,7 @@ func Delete(w http.ResponseWriter, r *http.Request, fileId string, dataDir strin
 func Destroy(w http.ResponseWriter, r *http.Request, throwaway string, dataDir string) {
 	fileId := r.FormValue("fileId")
 
-	err := models.DeleteNote(dataDir, fileId)
+	err := note_model.Delete(dataDir, fileId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -75,15 +77,15 @@ func Destroy(w http.ResponseWriter, r *http.Request, throwaway string, dataDir s
 }
 
 func Edit(w http.ResponseWriter, r *http.Request, fileId string, dataDir string) {
-	var rec *models.Note
+	var rec *note_model.Record
 
-	rec, err := models.FindNote(dataDir, fileId)
+	rec, err := note_model.Find(dataDir, fileId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	templateData := TemplateData{Rec: rec, CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir)}
+	templateData := TemplateData{Rec: rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir)}
 
 	renderTemplate(w, "edit", &templateData)
 }
@@ -94,8 +96,9 @@ func Index(w http.ResponseWriter, r *http.Request, throwAway string, dataDir str
 	templateData := IndexTemplateData{}
 
 	templateData.SearchString = r.FormValue("searchString")
+	templateData.FocusSearchString = true
 
-	templateData.Notes, err = models.FindNotes(dataDir, templateData.SearchString)
+	templateData.Recs, err = note_model.Search(dataDir, templateData.SearchString)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -103,7 +106,7 @@ func Index(w http.ResponseWriter, r *http.Request, throwAway string, dataDir str
 
 	templateData.CsrfToken = nosurf.Token(r)
 
-	templateData.TotalRecs = models.NotesCount(dataDir)
+	templateData.TotalRecs = note_model.Count(dataDir)
 
 	lp := path.Join("templates", "layouts", "layout.html")
 	fp := path.Join("templates", "notes", "index.html")
@@ -124,9 +127,9 @@ func Index(w http.ResponseWriter, r *http.Request, throwAway string, dataDir str
 }
 
 func New(w http.ResponseWriter, r *http.Request, throwaway string, dataDir string) {
-	rec := models.Note{}
+	rec := note_model.Record{}
 
-	templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir)}
+	templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir)}
 
 	renderTemplate(w, "new", &templateData)
 }
@@ -138,13 +141,13 @@ func Update(w http.ResponseWriter, r *http.Request, throwaway string, dataDir st
 
 	if title == "" || text == "" {
 		msg := "Missing note title or text!"
-		rec := models.Note{FileId: fileId, Title: title, Text: text}
+		rec := note_model.Record{FileId: fileId, Title: title, Text: text}
 
-		templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: models.NotesCount(dataDir), StatusMsg: msg}
+		templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir), StatusMsg: msg}
 
 		renderTemplate(w, "edit", &templateData)
 	} else {
-		rec, err := models.FindNote(dataDir, fileId)
+		rec, err := note_model.Find(dataDir, fileId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -155,7 +158,7 @@ func Update(w http.ResponseWriter, r *http.Request, throwaway string, dataDir st
 		rec.Text = text
 		rec.UpdatedAt = time.Now()
 
-		err = models.UpdateNote(dataDir, rec, fileId)
+		err = note_model.Update(dataDir, rec, fileId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
