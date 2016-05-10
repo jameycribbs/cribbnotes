@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jameycribbs/cribbnotes/handlers/notes_handler"
-	"github.com/justinas/nosurf"
 	"io/ioutil"
 	"net/http"
 )
@@ -45,19 +44,10 @@ func main() {
 
 	http.Handle("/", r)
 
-	csrfHandler := nosurf.New(http.DefaultServeMux)
-
-	csrfHandler.SetFailureHandler(http.HandlerFunc(failHand))
-
 	fmt.Println("CribbNotes data directory is: ", config.DataDir)
 	fmt.Println("CribbNotes server is running on port: ", config.Port)
 
-	http.ListenAndServe(":"+config.Port, csrfHandler)
-}
-
-func failHand(w http.ResponseWriter, r *http.Request) {
-	// will return the reason of the failure
-	fmt.Fprintf(w, "%s\n", nosurf.Reason(r))
+	http.ListenAndServe(":"+config.Port, nil)
 }
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string, string), dataDir string) http.HandlerFunc {

@@ -3,7 +3,6 @@
 {{define "body"}}
   <h1>Editing Note</h1>
   <form action="/update" method="POST">
-    <input type="hidden" name="csrf_token" value="{{ .CsrfToken }}">
     <input type="hidden" name="fileId" id="fileId" value="{{.Rec.FileId}}">
     <div class="form-group">
       <label for="title">Title</label>

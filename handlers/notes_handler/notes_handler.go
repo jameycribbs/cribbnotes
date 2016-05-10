@@ -2,7 +2,6 @@ package notes_handler
 
 import (
 	"github.com/jameycribbs/cribbnotes/models/note_model"
-	"github.com/justinas/nosurf"
 	"html/template"
 	"net/http"
 	"path"
@@ -13,7 +12,6 @@ type IndexTemplateData struct {
 	SearchString      string
 	FocusSearchString bool
 	Recs              []note_model.Record
-	CsrfToken         string
 	TotalRecs         int
 	StatusMsg         string
 }
@@ -22,7 +20,6 @@ type TemplateData struct {
 	SearchString      string
 	FocusSearchString bool
 	Rec               *note_model.Record
-	CsrfToken         string
 	TotalRecs         int
 	StatusMsg         string
 }
@@ -35,7 +32,7 @@ func Create(w http.ResponseWriter, r *http.Request, throwaway string, dataDir st
 		msg := "Missing note title or text!"
 		rec := note_model.Record{Title: title, Text: text}
 
-		templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir), StatusMsg: msg}
+		templateData := TemplateData{Rec: &rec, TotalRecs: note_model.Count(dataDir), StatusMsg: msg}
 
 		renderTemplate(w, "new", &templateData)
 	} else {
@@ -59,7 +56,7 @@ func Delete(w http.ResponseWriter, r *http.Request, fileId string, dataDir strin
 		return
 	}
 
-	templateData := TemplateData{Rec: rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir)}
+	templateData := TemplateData{Rec: rec, TotalRecs: note_model.Count(dataDir)}
 
 	renderTemplate(w, "delete", &templateData)
 }
@@ -85,7 +82,7 @@ func Edit(w http.ResponseWriter, r *http.Request, fileId string, dataDir string)
 		return
 	}
 
-	templateData := TemplateData{Rec: rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir)}
+	templateData := TemplateData{Rec: rec, TotalRecs: note_model.Count(dataDir)}
 
 	renderTemplate(w, "edit", &templateData)
 }
@@ -103,8 +100,6 @@ func Index(w http.ResponseWriter, r *http.Request, throwAway string, dataDir str
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	templateData.CsrfToken = nosurf.Token(r)
 
 	templateData.TotalRecs = note_model.Count(dataDir)
 
@@ -129,7 +124,7 @@ func Index(w http.ResponseWriter, r *http.Request, throwAway string, dataDir str
 func New(w http.ResponseWriter, r *http.Request, throwaway string, dataDir string) {
 	rec := note_model.Record{}
 
-	templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir)}
+	templateData := TemplateData{Rec: &rec, TotalRecs: note_model.Count(dataDir)}
 
 	renderTemplate(w, "new", &templateData)
 }
@@ -143,7 +138,7 @@ func Update(w http.ResponseWriter, r *http.Request, throwaway string, dataDir st
 		msg := "Missing note title or text!"
 		rec := note_model.Record{FileId: fileId, Title: title, Text: text}
 
-		templateData := TemplateData{Rec: &rec, CsrfToken: nosurf.Token(r), TotalRecs: note_model.Count(dataDir), StatusMsg: msg}
+		templateData := TemplateData{Rec: &rec, TotalRecs: note_model.Count(dataDir), StatusMsg: msg}
 
 		renderTemplate(w, "edit", &templateData)
 	} else {

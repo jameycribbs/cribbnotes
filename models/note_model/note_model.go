@@ -123,7 +123,8 @@ func Search(dataDir string, searchString string) ([]Record, error) {
 		valuesFound = 0
 
 		for _, searchValue := range searchValues {
-			if searchValue == "" || strings.Contains(strings.ToLower(rec.Title), searchValue) || strings.Contains(strings.ToLower(rec.Text),
+			if searchValue == "" || strings.Contains(strings.ToLower(rec.Title), searchValue) || strings.Contains(
+				strings.ToLower(rec.Text),
 				searchValue) {
 
 				valuesFound++

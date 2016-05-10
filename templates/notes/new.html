@@ -3,7 +3,6 @@
 {{define "body"}}
   <h1>New Note</h1>
   <form action="/create" method="POST">
-    <input type="hidden" name="csrf_token" value="{{ .CsrfToken }}">
     <div class="form-group">
       <label for="title">Title</label>
       <input autofocus type="text" class="form-control" name="title" value="{{.Rec.Title}}"> 
